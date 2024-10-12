@@ -1,0 +1,47 @@
+app-board { display: block !important; height: 100%; }
+
+mat-grid-tile {
+  height: 100%;
+  max-width: 400px;
+
+  .mat-grid-tile-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    padding: 3px;
+  }
+
+  h3 {
+    color: #ffd54f;
+    background: #0000008c;
+    padding: 14px 16px;
+    font-size: 13px !important;
+    border-radius: 6px;
+    font-weight: bold !important;
+    width: 100%;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  button[mat-stroked-button] {
+    width: 100%;
+  }
+}
+
+mat-grid-list {
+  height: 100%;
+
+  .create-column {
+    background-color: #ffd54f !important;
+    width: calc(100% - 10px);
+    position: fixed;
+    bottom: 10px;
+    left: 5px;
+    text-transform: uppercase;
+    font-weight: bold;
+
+    .mdc-button__label {
+      color: #949191;
+    }
+  }
+}

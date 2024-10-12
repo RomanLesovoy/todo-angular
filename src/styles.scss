@@ -3,5 +3,24 @@
 @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
 @include mat.core();
 
-html, body { height: 100%; }
+html, body { height: 100%; display: block; }
 body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: rgba(188, 188, 188, 0.3);
+}
+
+mat-icon.remove {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  cursor: pointer;
+  transform: scale(0.8);
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.25);
+  }
+}

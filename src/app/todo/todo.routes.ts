@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { RoomComponent } from './components/rooms/room/room.component';
+import { RoomComponent } from './components/room/room.component';
 import { RoomIdGuard } from './guards/roomId.guard';
 import { RootComponent } from './components/root/root.component';
 

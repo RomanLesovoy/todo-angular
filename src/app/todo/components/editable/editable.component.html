@@ -1,0 +1,14 @@
+
+<section (dblclick)="this.onDoubleClickActivateInput()" *ngIf="!this.isEditable; else editable">
+  <ng-content></ng-content>
+</section>
+
+<ng-template #editable>
+  <input
+    type="text"
+    [ngStyle]="{'height': this.inputHeight ? this.inputHeight + 'px' : 'auto'}"
+    #inputEditable
+    [(ngModel)]="this.currentTextValue"
+    autofocus
+  >
+</ng-template>

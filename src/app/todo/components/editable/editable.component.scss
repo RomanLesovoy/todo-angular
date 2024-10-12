@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+input {
+  background-color: transparent;
+  padding: 8px 10px;
+  border: 2px solid grey;
+  border-radius: 5px;
+  box-sizing: border-box;
+  margin-bottom: 15px;
+  width: 100%;
+  font-size: 14px;
+  font-weight: bold;
+}

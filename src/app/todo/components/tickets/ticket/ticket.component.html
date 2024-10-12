@@ -1,1 +1,22 @@
-<p>ticket works!</p>
+<mat-card appearance="outlined" [class]="this.ticket.isCompleted ? 'completed' : ''">
+  <mat-card-header>
+    <section class="card-header">
+      <mat-card-title>{{ ticket.title }}</mat-card-title>
+      <mat-icon aria-hidden="false" class="remove" fontIcon="close" (click)="this.removeTicket()"></mat-icon>
+    </section>
+
+    <mat-card-actions>
+      @if (this.isLoading) {
+        <mat-spinner [diameter]="30"></mat-spinner>
+      } @else {
+        <mat-slide-toggle
+          class="example-margin"
+          [checked]="ticket.isCompleted"
+          (change)="this.completeTicket()"
+          [disabled]="false">
+        </mat-slide-toggle>
+      }
+    </mat-card-actions>
+    
+  </mat-card-header>
+</mat-card>

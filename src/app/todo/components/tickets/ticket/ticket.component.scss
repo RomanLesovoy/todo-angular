@@ -1,0 +1,42 @@
+:host { display: block; width: 100%; }
+mat-card {
+  margin-bottom: 8px;
+
+  section.card-header {
+    flex: 1;
+    width: 100%;
+  }
+
+  mat-spinner {
+    margin: 5px auto;
+    display: block;
+  }
+
+  mat-icon {
+    top: 0;
+    right: 0;
+  }
+
+  mat-card-title {
+    line-height: normal;
+    text-align: center;
+  }
+
+  .mat-mdc-card-header {
+    padding: 12px !important;
+  }
+
+  mat-card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &.completed {
+    background-color: rgba(0, 0, 0, 0.15);
+
+    mat-card-title {
+      text-decoration: line-through;
+    }
+  }
+}

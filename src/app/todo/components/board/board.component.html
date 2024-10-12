@@ -1,0 +1,23 @@
+<mat-grid-list [cols]="columns.length" [style]="{'min-width': this.gridMinWidth}" rowHeight="1:1">
+  @for(col of columns; track col.name) {
+      <mat-grid-tile>
+        <app-editable [text]="col.name" (onChange)="this.onEditColName($event, col)">
+          <h3>{{ col.name }}</h3>
+          <mat-icon aria-hidden="false" class="remove" fontIcon="close" (click)="this.onDeleteColumn(col)"></mat-icon>
+        </app-editable>
+        
+        @for(ticket of tickets[col.id]; track ticket.title) {
+          <app-ticket
+            [ticket]="ticket"
+            (onDeleteTicket)="this.onDeleteTicket($event)"
+            (onEditTicket)="this.onEditTicket($event)"
+          ></app-ticket>
+        }
+        <button mat-stroked-button>Create Ticket</button>
+      </mat-grid-tile>
+  }
+
+  <button class="create-column" mat-flat-button>Create new column</button>
+
+</mat-grid-list>
+

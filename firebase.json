@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "dist/ticket-board-browser",
     "ignore": [
       "firebase.json",
       "**/.*",

@@ -1,9 +1,12 @@
 <mat-card appearance="outlined" [class]="this.ticket.isCompleted ? 'completed' : ''">
   <mat-card-header>
-    <section class="card-header">
-      <mat-card-title>{{ ticket.title }}</mat-card-title>
-      <mat-icon aria-hidden="false" class="remove" fontIcon="close" (click)="this.removeTicket()"></mat-icon>
-    </section>
+    <app-editable [text]="ticket.title" (onChange)="this.editTicket($event)">
+      <section class="card-header">
+        <mat-card-title>{{ ticket.title }}</mat-card-title>
+      </section>
+    </app-editable>
+
+    <mat-icon aria-hidden="false" class="remove" fontIcon="close" (click)="this.removeTicket()"></mat-icon>
 
     <mat-card-actions>
       @if (this.isLoading) {

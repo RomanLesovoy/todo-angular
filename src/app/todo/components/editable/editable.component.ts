@@ -10,7 +10,7 @@ export class EditableComponent implements OnChanges {
   public currentTextValue: string = '';
   public inputHeight: number = 0;
   @Input() public editable?: boolean = true;
-  @Input() public text!: string;
+  @Input({ required: true }) public text!: string;
   @Output() public onChange: EventEmitter<string> = new EventEmitter();
 
   constructor(
@@ -21,7 +21,7 @@ export class EditableComponent implements OnChanges {
     
     // get child height and set it to input (avoid content jumping)
     setTimeout(() => {
-      this.inputHeight = this.element.nativeElement.offsetHeight - 15;
+      this.inputHeight = this.element.nativeElement.offsetHeight;
     }, 10);
   }
 

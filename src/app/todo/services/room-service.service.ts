@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { Observable, map, delay, BehaviorSubject, tap } from 'rxjs';
-import { Column, GeneralResponse, RoomDto, RoomPrepared } from '../interfaces';
+import { Column, ColumnRequest, GeneralResponse, RoomDto, RoomPrepared, Ticket, TicketCreateRequest } from '../interfaces';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from './config.service';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +14,25 @@ export class RoomServiceService {
   public isLoading: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
   constructor(
-    private readonly httpClient: HttpClient,
-    private readonly configService: ConfigService,
+    @Inject(HttpClient) private readonly httpClient: HttpClient,
+    @Inject(ConfigService) private readonly configService: ConfigService,
+    @Inject(Router) private readonly router: Router,
   ) {}
+
+  public createRoom(): Observable<string> {
+    this.isLoading.next(true);
+    interface Response extends GeneralResponse { roomHash?: string };
+    return (this.httpClient.post(`${this.configService.sourceV1}/room`, { name: Date.now().toString() }) as Observable<Response>)
+      .pipe(
+        delay(500),
+        tap({
+          next: (v) => v && v.roomHash && (this.router.navigateByUrl('/rooms/room/' + v.roomHash)),
+          error: (e) => console.error(e),
+          finalize: () => this.isLoading.next(false)
+        }),
+        map(v => v.roomHash!)
+      )
+  }
 
   public setRoomIfExists(roomHash: string): Observable<boolean> {
     this.isLoading.next(true);
@@ -34,6 +51,48 @@ export class RoomServiceService {
           finalize: () => this.isLoading.next(false)
         }),
         map((v) => !!v.success),
+      )
+  }
+
+  public createTicket(colId: number): Observable<Ticket> {
+    this.isLoading.next(true);
+    interface Response extends GeneralResponse { todo: Ticket };
+    return (this.httpClient.post(`${this.configService.sourceV1}/todo`, ({ title: 'New Ticket', roomHash: this.currentRoomHash.value, columnId: colId, isCompleted: false } as TicketCreateRequest)) as Observable<Response>)
+    .pipe(
+      delay(500),
+      tap({
+        next: (res) => {
+          if (res.success && res.todo) {
+            const currentRoomV = this.currentRoom.value!;
+            const columnTodos = currentRoomV.todos[colId]?.length ? currentRoomV.todos[colId] : [];
+            const todos = { ...currentRoomV.todos, [colId]: [ ...columnTodos, res.todo ] }
+            this.currentRoom.next({ ...currentRoomV, todos });
+          }
+        },
+        error: (e) => {console.error(e)},
+        finalize: () => this.isLoading.next(false),
+      }),
+      map((v) => v.todo)
+    )
+  }
+
+  public createColumn(): Observable<Column> {
+    this.isLoading.next(true);
+    interface Response extends GeneralResponse { column: Column };
+    return (this.httpClient.post(`${this.configService.sourceV1}/column`, ({ name: 'New Column', roomHash: this.currentRoomHash.value } as ColumnRequest)) as Observable<Response>)
+      .pipe(
+        delay(500),
+        tap({
+          next: (res) => {
+            if (res.success && res.column) {
+              const currentRoomV = this.currentRoom.value!;
+              this.currentRoom.next({ ...currentRoomV, columns: [...currentRoomV.columns, res.column] });
+            }
+          },
+          error: (e) => {console.error(e)},
+          finalize: () => this.isLoading.next(false),
+        }),
+        map((v) => v.column)
       )
   }
 

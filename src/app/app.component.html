@@ -1,2 +1,7 @@
-<mat-spinner *ngIf="this.loading"></mat-spinner>
+<app-header></app-header>
+
+<div class="spinner-modal" *ngIf="this.loading">
+  <mat-spinner color="orange"></mat-spinner>
+</div>
+
 <router-outlet></router-outlet>

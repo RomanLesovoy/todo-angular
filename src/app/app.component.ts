@@ -3,11 +3,12 @@ import { Router, RouterOutlet } from '@angular/router';
 import { GuardsCheckStart, GuardsCheckEnd, NavigationCancel } from '@angular/router';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { HeaderComponent } from "./partials/header/header.component";
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, MatProgressSpinnerModule],
+  imports: [RouterOutlet, CommonModule, MatProgressSpinnerModule, HeaderComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

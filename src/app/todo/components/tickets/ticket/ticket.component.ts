@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Ticket } from '../../../interfaces';
-import { delay, of } from 'rxjs';
 
 @Component({
   selector: 'app-ticket',
@@ -8,7 +7,7 @@ import { delay, of } from 'rxjs';
   styleUrl: './ticket.component.scss'
 })
 export class TicketComponent {
-  @Input() ticket!: Ticket;
+  @Input({ required: true }) ticket!: Ticket;
   @Output() onDeleteTicket = new EventEmitter<Ticket>();
   @Output() onEditTicket = new EventEmitter<Ticket>();
   isLoading: boolean = false;
@@ -26,5 +25,10 @@ export class TicketComponent {
   completeTicket() {
     this.showLoader(1000);
     this.onEditTicket.emit({ ...this.ticket, isCompleted: !this.ticket.isCompleted });
+  }
+
+  editTicket(val: string) {
+    this.showLoader(1000);
+    this.onEditTicket.emit({ ...this.ticket, title: val });
   }
 }

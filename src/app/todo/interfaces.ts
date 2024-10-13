@@ -1,9 +1,15 @@
-export interface Ticket {
+
+
+export interface TicketCreateRequest {
   title: string;
-  roomId: string;
-  columnId: string;
+  roomHash: string;
+  columnId: number;
   isCompleted: boolean;
+}
+
+export interface Ticket extends TicketCreateRequest {
   id: string;
+  roomId: string;
 }
 
 export interface Room {
@@ -15,6 +21,11 @@ export interface Column {
   name: string;
   roomId: string;
   id: number;
+}
+
+export interface ColumnRequest {
+  name: string;
+  roomHash: string;
 }
 
 export interface RoomDto extends Room {

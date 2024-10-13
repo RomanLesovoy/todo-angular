@@ -9,8 +9,13 @@ input {
   border: 2px solid grey;
   border-radius: 5px;
   box-sizing: border-box;
-  margin-bottom: 15px;
+  // margin-bottom: 15px;
   width: 100%;
   font-size: 14px;
   font-weight: bold;
+}
+
+section {
+  display: block;
+  height: 100%;
 }

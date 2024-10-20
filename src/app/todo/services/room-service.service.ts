@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
-import { Observable, map, delay, BehaviorSubject, tap } from 'rxjs';
-import { Column, ColumnRequest, GeneralResponse, RoomDto, RoomPrepared, Ticket, TicketCreateRequest } from '../interfaces';
+import { Observable, map, delay, BehaviorSubject, tap, switchMap, from, filter } from 'rxjs';
+import { Column, ColumnRequest, GeneralResponse, RoomDto, RoomPrepared } from '../interfaces';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from './config.service';
 import { Router } from '@angular/router';
+import { SocketService, IToDoMessage } from './socket.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,12 +13,23 @@ export class RoomServiceService {
   public currentRoom: BehaviorSubject<RoomPrepared | null> = new BehaviorSubject(null) as BehaviorSubject<RoomPrepared | null>;
   public currentRoomHash: BehaviorSubject<string> = new BehaviorSubject('');
   public isLoading: BehaviorSubject<boolean> = new BehaviorSubject(false);
+  public roomWs$: Observable<IToDoMessage>;
 
   constructor(
     @Inject(HttpClient) private readonly httpClient: HttpClient,
     @Inject(ConfigService) private readonly configService: ConfigService,
     @Inject(Router) private readonly router: Router,
-  ) {}
+    @Inject(SocketService) private readonly socketService: SocketService,
+  ) {
+    this.roomWs$ = from(this.currentRoomHash).pipe(
+      filter((v) => !!v),
+      switchMap((v) => this.socketService.subscribeToRoom(v)),
+    );
+
+    this.roomWs$
+      .pipe(filter((v: IToDoMessage) => v.type === 'column'))
+      .subscribe((v) => this.updateRoomColums(v.value, v.action))
+  }
 
   public createRoom(): Observable<string> {
     this.isLoading.next(true);
@@ -54,28 +66,6 @@ export class RoomServiceService {
       )
   }
 
-  public createTicket(colId: number): Observable<Ticket> {
-    this.isLoading.next(true);
-    interface Response extends GeneralResponse { todo: Ticket };
-    return (this.httpClient.post(`${this.configService.sourceV1}/todo`, ({ title: 'New Ticket', roomHash: this.currentRoomHash.value, columnId: colId, isCompleted: false } as TicketCreateRequest)) as Observable<Response>)
-    .pipe(
-      delay(500),
-      tap({
-        next: (res) => {
-          if (res.success && res.todo) {
-            const currentRoomV = this.currentRoom.value!;
-            const columnTodos = currentRoomV.todos[colId]?.length ? currentRoomV.todos[colId] : [];
-            const todos = { ...currentRoomV.todos, [colId]: [ ...columnTodos, res.todo ] }
-            this.currentRoom.next({ ...currentRoomV, todos });
-          }
-        },
-        error: (e) => {console.error(e)},
-        finalize: () => this.isLoading.next(false),
-      }),
-      map((v) => v.todo)
-    )
-  }
-
   public createColumn(): Observable<Column> {
     this.isLoading.next(true);
     interface Response extends GeneralResponse { column: Column };
@@ -83,12 +73,7 @@ export class RoomServiceService {
       .pipe(
         delay(500),
         tap({
-          next: (res) => {
-            if (res.success && res.column) {
-              const currentRoomV = this.currentRoom.value!;
-              this.currentRoom.next({ ...currentRoomV, columns: [...currentRoomV.columns, res.column] });
-            }
-          },
+          next: () => {}, // todo notify about column update
           error: (e) => {console.error(e)},
           finalize: () => this.isLoading.next(false),
         }),
@@ -103,13 +88,7 @@ export class RoomServiceService {
       .pipe(
         delay(500),
         tap({
-          next: (res) => {
-            if (res.success) {
-              const currentRoomV = this.currentRoom.value!;
-              const updatedColumns = currentRoomV.columns.map((c) => c.id !== column.id ? c : column);
-              this.currentRoom.next({ ...currentRoomV, columns: updatedColumns });
-            }
-          },
+          next: () => {}, // todo notify about column update
           error: (e) => {console.error(e)},
           finalize: () => this.isLoading.next(false),
         }),
@@ -123,13 +102,7 @@ export class RoomServiceService {
       .pipe(
         delay(500),
         tap({
-          next: (res) => {
-            if (res.success) {
-              const currentRoomV = this.currentRoom.value!;
-              const updatedColumns = currentRoomV.columns.filter((c) => c.id !== col.id);
-              this.currentRoom.next({ ...currentRoomV, columns: updatedColumns });
-            }
-          },
+          next: () => {}, // todo notify about column deletion
           error: (e) => {console.error(e)},
           finalize: () => this.isLoading.next(false),
         }),
@@ -147,5 +120,15 @@ export class RoomServiceService {
         return acc;
       }, {})
     }
+  }
+
+  private updateRoomColums(column: Column, type: 'create' | 'delete' | 'update') {
+    const room = this.currentRoom.value!;
+    const actions = {
+      create: () => this.currentRoom.next({ ...room, columns: [...room.columns || [], column] }),
+      delete: () => this.currentRoom.next({ ...room, columns: room.columns.filter((c) => c.id !== column.id), }),
+      update: () => this.currentRoom.next({ ...room, columns: room.columns.map((c) => c.id !== column.id ? c : column) }),
+    }
+    actions[type]();
   }
 }

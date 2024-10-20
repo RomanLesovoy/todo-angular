@@ -31,7 +31,7 @@ export class BoardComponent implements OnChanges {
   }
 
   public onCreateTicket(colId: number) {
-    this.roomService.createTicket(colId).subscribe();
+    this.ticketService.createTicket(colId).subscribe();
   }
 
   public onEditColName(newName: string, col: Column) {

@@ -18,7 +18,7 @@ import { TicketComponent } from './components/tickets/ticket/ticket.component';
 import { TicketServiceService } from './services/ticket-service.service';
 import { EditableComponent } from './components/editable/editable.component';
 import { FormsModule } from '@angular/forms';
-
+import { SocketService } from './services/socket.service';
 @NgModule({
   declarations: [
     RootComponent,
@@ -45,6 +45,7 @@ import { FormsModule } from '@angular/forms';
     RoomIdGuard,
     RoomServiceService,
     TicketServiceService,
+    SocketService,
     provideHttpClient(),
   ]
 })

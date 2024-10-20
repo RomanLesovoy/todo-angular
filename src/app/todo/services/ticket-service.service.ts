@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@angular/core';
-import { Ticket } from '../interfaces';
+import { GeneralResponse, Ticket, TicketCreateRequest } from '../interfaces';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from './config.service';
-import { BehaviorSubject, delay, tap } from 'rxjs';
+import { BehaviorSubject, delay, filter, map, Observable, tap } from 'rxjs';
 import { RoomServiceService } from './room-service.service';
+import { IToDoMessage } from './socket.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,19 +16,39 @@ export class TicketServiceService {
     @Inject(HttpClient) private readonly httpClient: HttpClient,
     @Inject(ConfigService) private readonly configService: ConfigService,
     @Inject(RoomServiceService) private readonly roomService: RoomServiceService,
-  ) {}
+  ) {
+    this.roomService.roomWs$
+      .pipe(filter((v: IToDoMessage) => v.type === 'todo'))
+      .subscribe((v) => this.updateTodoColumn(v.value, v.action))
+  }
 
-  private _updateTodoColumn(ticket: Ticket, type: 'remove' | 'edit') {
+  private updateTodoColumn(ticket: Ticket, type: 'delete' | 'update' | 'create') {
     const todos = this.roomService.currentRoom.value!.todos;
     const todoKey = String(ticket.columnId);
-    const values = {
-      remove: () => todos[todoKey].filter((t) => t.id !== ticket.id),
-      edit: () => todos[todoKey] = todos[todoKey].map((t) => ticket.id !== t.id ? t : ticket)
+    const actions = {
+      create: () => todos[todoKey] = todos[todoKey] ? todos[todoKey].concat(ticket) : [ticket],
+      delete: () => todos[todoKey].filter((t) => t.id !== ticket.id),
+      update: () => todos[todoKey] = todos[todoKey].map((t) => ticket.id !== t.id ? t : ticket)
     }
     this.roomService.currentRoom.next({
       ...this.roomService.currentRoom.value!,
-      todos: { ...todos, [todoKey]: values[type]() }
+      todos: { ...todos, [todoKey]: actions[type]() }
     })
+  }
+
+  public createTicket(colId: number): Observable<Ticket> {
+    this.isLoading.next(true);
+    interface Response extends GeneralResponse { todo: Ticket };
+    return (this.httpClient.post(`${this.configService.sourceV1}/todo`, ({ title: 'New Ticket', roomHash: this.roomService.currentRoomHash.value, columnId: colId, isCompleted: false } as TicketCreateRequest)) as Observable<Response>)
+    .pipe(
+      delay(500),
+      tap({
+        next: () => {}, // todo notify about new ticket
+        error: (e) => {console.error(e)},
+        finalize: () => this.isLoading.next(false),
+      }),
+      map((v) => v.todo)
+    )
   }
 
   public removeTicket(ticket: Ticket) {
@@ -36,7 +57,7 @@ export class TicketServiceService {
       .pipe(
         delay(200),
         tap({
-          next: () => this._updateTodoColumn(ticket, 'remove'),
+          next: () => {}, // todo notify about ticket removal
           error: (e) => {console.error(e)},
           complete: () => {
             this.isLoading.next(false);
@@ -51,7 +72,7 @@ export class TicketServiceService {
       .pipe(
         delay(200),
         tap({
-          next: () => this._updateTodoColumn(ticket, 'edit'),
+          next: () => {}, // todo notify about ticket update
           error: (e) => {console.error(e)},
           complete: () => {
             this.isLoading.next(false);

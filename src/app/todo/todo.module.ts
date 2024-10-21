@@ -19,6 +19,8 @@ import { TicketServiceService } from './services/ticket-service.service';
 import { EditableComponent } from './components/editable/editable.component';
 import { FormsModule } from '@angular/forms';
 import { SocketService } from './services/socket.service';
+import { NotificationService } from './services/notification.service';
+
 @NgModule({
   declarations: [
     RootComponent,
@@ -46,6 +48,7 @@ import { SocketService } from './services/socket.service';
     RoomServiceService,
     TicketServiceService,
     SocketService,
+    NotificationService,
     provideHttpClient(),
   ]
 })

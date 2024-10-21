@@ -5,7 +5,7 @@ import { ConfigService } from './config.service';
 import { BehaviorSubject, delay, filter, map, Observable, tap } from 'rxjs';
 import { RoomServiceService } from './room-service.service';
 import { IToDoMessage } from './socket.service';
-
+import { NotificationService } from './notification.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -16,6 +16,7 @@ export class TicketServiceService {
     @Inject(HttpClient) private readonly httpClient: HttpClient,
     @Inject(ConfigService) private readonly configService: ConfigService,
     @Inject(RoomServiceService) private readonly roomService: RoomServiceService,
+    @Inject(NotificationService) private readonly notificationService: NotificationService,
   ) {
     this.roomService.roomWs$
       .pipe(filter((v: IToDoMessage) => v.type === 'todo'))
@@ -23,6 +24,7 @@ export class TicketServiceService {
   }
 
   private updateTodoColumn(ticket: Ticket, type: 'delete' | 'update' | 'create') {
+    this.notificationService.pushUpdateNotification(type);
     const todos = this.roomService.currentRoom.value!.todos;
     const todoKey = String(ticket.columnId);
     const actions = {
@@ -41,10 +43,8 @@ export class TicketServiceService {
     interface Response extends GeneralResponse { todo: Ticket };
     return (this.httpClient.post(`${this.configService.sourceV1}/todo`, ({ title: 'New Ticket', roomHash: this.roomService.currentRoomHash.value, columnId: colId, isCompleted: false } as TicketCreateRequest)) as Observable<Response>)
     .pipe(
-      delay(500),
       tap({
-        next: () => {}, // todo notify about new ticket
-        error: (e) => {console.error(e)},
+        error: (e) => this.notificationService.pushErrorNotification(e),
         finalize: () => this.isLoading.next(false),
       }),
       map((v) => v.todo)
@@ -55,10 +55,8 @@ export class TicketServiceService {
     this.isLoading.next(true);
     return this.httpClient.delete(`${this.configService.sourceV1}/todo/${ticket.id}`)
       .pipe(
-        delay(200),
         tap({
-          next: () => {}, // todo notify about ticket removal
-          error: (e) => {console.error(e)},
+          error: (e) => this.notificationService.pushErrorNotification(e),
           complete: () => {
             this.isLoading.next(false);
           }
@@ -70,10 +68,8 @@ export class TicketServiceService {
     this.isLoading.next(true);
     return this.httpClient.patch(`${this.configService.sourceV1}/todo/${ticket.id}`, ticket)
       .pipe(
-        delay(200),
         tap({
-          next: () => {}, // todo notify about ticket update
-          error: (e) => {console.error(e)},
+          error: (e) => this.notificationService.pushErrorNotification(e),
           complete: () => {
             this.isLoading.next(false);
           }

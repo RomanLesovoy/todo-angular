@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { ConfigService } from './config.service';
 import { Router } from '@angular/router';
 import { SocketService, IToDoMessage } from './socket.service';
-
+import { NotificationService } from './notification.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -20,6 +20,7 @@ export class RoomServiceService {
     @Inject(ConfigService) private readonly configService: ConfigService,
     @Inject(Router) private readonly router: Router,
     @Inject(SocketService) private readonly socketService: SocketService,
+    @Inject(NotificationService) private readonly notificationService: NotificationService,
   ) {
     this.roomWs$ = from(this.currentRoomHash).pipe(
       filter((v) => !!v),
@@ -39,7 +40,7 @@ export class RoomServiceService {
         delay(500),
         tap({
           next: (v) => v && v.roomHash && (this.router.navigateByUrl('/rooms/room/' + v.roomHash)),
-          error: (e) => console.error(e),
+          error: (e) => this.notificationService.pushErrorNotification(e),
           finalize: () => this.isLoading.next(false)
         }),
         map(v => v.roomHash!)
@@ -59,7 +60,7 @@ export class RoomServiceService {
               this.currentRoom.next(this.prepareRoom(v.room));
             }
           },
-          error: (e) => {console.error(e)},
+          error: (e) => this.notificationService.pushErrorNotification(e),
           finalize: () => this.isLoading.next(false)
         }),
         map((v) => !!v.success),
@@ -71,10 +72,8 @@ export class RoomServiceService {
     interface Response extends GeneralResponse { column: Column };
     return (this.httpClient.post(`${this.configService.sourceV1}/column`, ({ name: 'New Column', roomHash: this.currentRoomHash.value } as ColumnRequest)) as Observable<Response>)
       .pipe(
-        delay(500),
         tap({
-          next: () => {}, // todo notify about column update
-          error: (e) => {console.error(e)},
+          error: (e) => this.notificationService.pushErrorNotification(e),
           finalize: () => this.isLoading.next(false),
         }),
         map((v) => v.column)
@@ -86,10 +85,8 @@ export class RoomServiceService {
     interface Response extends GeneralResponse { column?: Column };
     return (this.httpClient.patch(`${this.configService.sourceV1}/column/${column.id}`, column) as Observable<Response>)
       .pipe(
-        delay(500),
         tap({
-          next: () => {}, // todo notify about column update
-          error: (e) => {console.error(e)},
+          error: (e) => this.notificationService.pushErrorNotification(e),
           finalize: () => this.isLoading.next(false),
         }),
         map((v) => !!v.success)
@@ -100,10 +97,8 @@ export class RoomServiceService {
     this.isLoading.next(true);
     return (this.httpClient.delete(`${this.configService.sourceV1}/column/${col.id}`) as Observable<GeneralResponse>)
       .pipe(
-        delay(500),
         tap({
-          next: () => {}, // todo notify about column deletion
-          error: (e) => {console.error(e)},
+          error: (e) => this.notificationService.pushErrorNotification(e),
           finalize: () => this.isLoading.next(false),
         }),
         map((v) => !!v.success)
@@ -124,6 +119,7 @@ export class RoomServiceService {
 
   private updateRoomColums(column: Column, type: 'create' | 'delete' | 'update') {
     const room = this.currentRoom.value!;
+    this.notificationService.pushUpdateNotification(type);
     const actions = {
       create: () => this.currentRoom.next({ ...room, columns: [...room.columns || [], column] }),
       delete: () => this.currentRoom.next({ ...room, columns: room.columns.filter((c) => c.id !== column.id), }),

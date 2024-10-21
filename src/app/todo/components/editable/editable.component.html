@@ -1,5 +1,9 @@
 
-<section (dblclick)="this.onDoubleClickActivateInput()" *ngIf="!this.isEditable; else editable">
+<section
+  (dblclick)="this.onDoubleClickActivateInput()"
+  (click)="this.isMobile ? this.onDoubleClickActivateInput() : null"
+  *ngIf="!this.isEditable; else editable"
+>
   <ng-content></ng-content>
 </section>
 

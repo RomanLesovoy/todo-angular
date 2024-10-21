@@ -1,5 +1,11 @@
 app-board { display: block !important; height: 100%; }
 
+app-editable {
+  @media screen and (max-width: 780px) {
+    padding: 4px;
+  }
+}
+
 mat-grid-tile {
   height: 100%;
   max-width: 400px;
@@ -66,6 +72,11 @@ mat-grid-list {
     font-size: 18px;
     height: 50px;
     border: 2px solid #ddd9d9;
+
+    @media screen and (max-width: 780px) {
+      width: 90%;
+      left: 5%;
+    }
 
     .mdc-button__label {
       color: #f0ecec;

@@ -9,6 +9,7 @@ export class EditableComponent implements OnChanges {
   public isEditable: boolean = false;
   public currentTextValue: string = '';
   public inputHeight: number = 0;
+  public isMobile: boolean = false;
   @Input() public editable?: boolean = true;
   @Input({ required: true }) public text!: string;
   @Output() public onChange: EventEmitter<string> = new EventEmitter();
@@ -18,6 +19,10 @@ export class EditableComponent implements OnChanges {
     @Self() private element: ElementRef,
   ) {
     this.currentTextValue = this.text;
+
+    if ("ontouchstart" in document.documentElement && !this.isMobile) {
+      this.isMobile = true;
+    }
     
     // get child height and set it to input (avoid content jumping)
     setTimeout(() => {

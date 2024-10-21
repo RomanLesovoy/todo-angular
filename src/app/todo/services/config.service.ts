@@ -11,7 +11,7 @@ export class ConfigService {
 
   public readonly sourceWs: string = isDevMode() 
     ? 'ws://localhost:3000'
-    : 'https://todo-nest-api.onrender.com';
+    : 'wss://todo-nest-api.onrender.com';
 
   constructor() { }
 }

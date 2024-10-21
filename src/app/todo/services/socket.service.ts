@@ -19,6 +19,7 @@ export class SocketService {
   constructor(private configService: ConfigService) {
     this.socket = io(this.configService.sourceWs, {
       transports: ['websocket', 'polling'],
+      port: 443,
       // path: '/todo',
     });
 

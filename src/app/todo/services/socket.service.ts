@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 import { Injectable, OnDestroy } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import { ConfigService } from './config.service';
 
 export type Action = 'create' | 'update' | 'delete';
@@ -39,16 +39,20 @@ export class SocketService implements OnDestroy {
 
   subscribeToRoom(roomHash: string): Observable<IToDoMessage> {
     this.socket.emit('joinRoom', roomHash);
-    return new Observable((observer) => {
+    return new Observable<IToDoMessage>((observer) => {
       const handler = (message: IToDoMessage) => observer.next(message);
 
       this.socket.on('roomUpdate', handler);
 
       return () => {
-        this.socket?.emit('leaveRoom', roomHash);
+        this.leaveRoom(roomHash);
         this.socket?.off('roomUpdate', handler)
       };
-    });
+    }).pipe(shareReplay(1)); // shareReplay(1) avoid memory leak (subscribes to socket only once if multiple subscriptions)
+  }
+
+  public leaveRoom(roomHash: string) {
+    this.socket?.emit('leaveRoom', roomHash);
   }
 
   ngOnDestroy() {

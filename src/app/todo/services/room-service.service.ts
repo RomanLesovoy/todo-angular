@@ -13,6 +13,7 @@ import { NotificationService } from './notification.service';
 export class RoomServiceService {
   public currentRoom: BehaviorSubject<RoomPrepared | null> = new BehaviorSubject(null) as BehaviorSubject<RoomPrepared | null>;
   public currentRoomHash: BehaviorSubject<string> = new BehaviorSubject('');
+  private previousRoomHash: string = '';
   public isLoading: BehaviorSubject<boolean> = new BehaviorSubject(false);
   public roomWs$: Observable<IToDoMessage>;
 
@@ -25,7 +26,11 @@ export class RoomServiceService {
   ) {
     this.roomWs$ = from(this.currentRoomHash).pipe(
       filter((v) => !!v),
-      switchMap((v) => this.socketService.subscribeToRoom(v)),
+      switchMap((v: string) => {
+        this.previousRoomHash && this.socketService.leaveRoom(this.previousRoomHash);
+        this.previousRoomHash = v;
+        return this.socketService.subscribeToRoom(v);
+      }),
     );
 
     this.roomWs$

@@ -7,7 +7,8 @@ import { catchError, map, Observable, of } from "rxjs";
 @Injectable()
 export class RoomIdGuard implements CanActivate {
     constructor(
-        @Inject(RoomServiceService) private roomService: RoomServiceService,    ) {}
+        @Inject(RoomServiceService) private readonly roomService: RoomServiceService
+    ) {}
 
     canActivate(
         next: ActivatedRouteSnapshot,

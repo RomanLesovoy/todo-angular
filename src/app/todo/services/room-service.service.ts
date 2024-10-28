@@ -4,8 +4,9 @@ import { Column, ColumnRequest, GeneralResponse, RoomDto, RoomPrepared } from '.
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from './config.service';
 import { Router } from '@angular/router';
-import { SocketService, IToDoMessage } from './socket.service';
+import { SocketService, IToDoMessage, Action } from './socket.service';
 import { NotificationService } from './notification.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -117,7 +118,7 @@ export class RoomServiceService {
     }
   }
 
-  private updateRoomColums(column: Column, type: 'create' | 'delete' | 'update') {
+  private updateRoomColums(column: Column, type: Action) {
     const room = this.currentRoom.value!;
     this.notificationService.pushUpdateNotification(type);
     const actions = {

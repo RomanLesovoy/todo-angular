@@ -7,9 +7,5 @@ import { RoomServiceService } from '../../services/room-service.service';
   styleUrl: './root.component.scss'
 })
 export class RootComponent {
-  loading: boolean = false;
-
-  constructor(private readonly roomService: RoomServiceService) {
-    this.roomService.isLoading.subscribe(l => this.loading = l);
-  }
+  constructor(public readonly roomService: RoomServiceService) {}
 }

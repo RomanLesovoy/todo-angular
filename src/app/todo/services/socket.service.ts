@@ -1,26 +1,31 @@
 import { io } from 'socket.io-client';
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ConfigService } from './config.service';
 
+export type Action = 'create' | 'update' | 'delete';
+export type Type = 'todo' | 'column';
 export interface IToDoMessage {
-  action: 'create' | 'update' | 'delete',
-  type: 'todo' | 'column',
-  value: any, // Todo fixme
+  action: Action,
+  type: Type,
+  value: any,
   roomHash: string,
 }
 
 @Injectable({
   providedIn: 'root'
 })
-export class SocketService {
+export class SocketService implements OnDestroy {
   public socket;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService
+  ) {
     this.socket = io(this.configService.sourceWs, {
-      transports: ['websocket', 'polling'],
+      reconnectionAttempts: 3,
+      reconnection: true,
+      transports: ['websocket'], // 'polling' was deleted
       port: 443,
-      // path: '/todo',
     });
 
     this.socket.on('connect_error', (error) => {
@@ -35,9 +40,18 @@ export class SocketService {
   subscribeToRoom(roomHash: string): Observable<IToDoMessage> {
     this.socket.emit('joinRoom', roomHash);
     return new Observable((observer) => {
-      this.socket.on('roomUpdate', (message: IToDoMessage) => {
-        observer.next(message);
-      });
-    })
+      const handler = (message: IToDoMessage) => observer.next(message);
+
+      this.socket.on('roomUpdate', handler);
+
+      return () => {
+        this.socket?.emit('leaveRoom', roomHash);
+        this.socket?.off('roomUpdate', handler)
+      };
+    });
+  }
+
+  ngOnDestroy() {
+    this.socket?.disconnect();
   }
 }

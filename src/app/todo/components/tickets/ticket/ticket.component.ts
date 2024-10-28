@@ -1,16 +1,17 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Ticket } from '../../../interfaces';
 
 @Component({
   selector: 'app-ticket',
   templateUrl: './ticket.component.html',
-  styleUrl: './ticket.component.scss'
+  styleUrl: './ticket.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TicketComponent {
   @Input({ required: true }) ticket!: Ticket;
   @Output() onDeleteTicket = new EventEmitter<Ticket>();
   @Output() onEditTicket = new EventEmitter<Ticket>();
-  isLoading: boolean = false;
+  public isLoading: boolean = false;
 
   showLoader(time: number) {
     this.isLoading = true;

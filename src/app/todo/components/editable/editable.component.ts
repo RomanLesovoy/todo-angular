@@ -12,11 +12,11 @@ export class EditableComponent implements OnChanges {
   public isMobile: boolean = false;
   @Input() public editable?: boolean = true;
   @Input({ required: true }) public text!: string;
-  @Output() public onChange: EventEmitter<string> = new EventEmitter();
+  @Output() private readonly onChange: EventEmitter<string> = new EventEmitter();
 
   constructor(
-    private inputElement: ElementRef,
-    @Self() private element: ElementRef,
+    private readonly inputElement: ElementRef,
+    @Self() private readonly element: ElementRef,
   ) {
     this.currentTextValue = this.text;
 

@@ -2,10 +2,11 @@ import { Inject, Injectable } from '@angular/core';
 import { GeneralResponse, Ticket, TicketCreateRequest } from '../interfaces';
 import { HttpClient } from '@angular/common/http';
 import { ConfigService } from './config.service';
-import { BehaviorSubject, delay, filter, map, Observable, tap } from 'rxjs';
+import { BehaviorSubject, filter, map, Observable, tap } from 'rxjs';
 import { RoomServiceService } from './room-service.service';
-import { IToDoMessage } from './socket.service';
+import { IToDoMessage, Action } from './socket.service';
 import { NotificationService } from './notification.service';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -23,7 +24,7 @@ export class TicketServiceService {
       .subscribe((v) => this.updateTodoColumn(v.value, v.action))
   }
 
-  private updateTodoColumn(ticket: Ticket, type: 'delete' | 'update' | 'create') {
+  private updateTodoColumn(ticket: Ticket, type: Action) {
     this.notificationService.pushUpdateNotification(type);
     const todos = this.roomService.currentRoom.value!.todos;
     const todoKey = String(ticket.columnId);
@@ -44,10 +45,10 @@ export class TicketServiceService {
     return (this.httpClient.post(`${this.configService.sourceV1}/todo`, ({ title: 'New Ticket', roomHash: this.roomService.currentRoomHash.value, columnId: colId, isCompleted: false } as TicketCreateRequest)) as Observable<Response>)
     .pipe(
       tap({
-        error: (e) => this.notificationService.pushErrorNotification(e),
-        finalize: () => this.isLoading.next(false),
-      }),
-      map((v) => v.todo)
+          error: (e) => this.notificationService.pushErrorNotification(e),
+          finalize: () => this.isLoading.next(false),
+        }),
+        map((v) => v.todo),
     )
   }
 
@@ -57,10 +58,8 @@ export class TicketServiceService {
       .pipe(
         tap({
           error: (e) => this.notificationService.pushErrorNotification(e),
-          complete: () => {
-            this.isLoading.next(false);
-          }
-        })
+          finalize: () => this.isLoading.next(false),
+        }),
       )
   }
 
@@ -70,10 +69,8 @@ export class TicketServiceService {
       .pipe(
         tap({
           error: (e) => this.notificationService.pushErrorNotification(e),
-          complete: () => {
-            this.isLoading.next(false);
-          }
-        })
+          finalize: () => this.isLoading.next(false),
+        }),
       )
   }
 }

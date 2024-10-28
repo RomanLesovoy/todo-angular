@@ -1,5 +1,6 @@
-import { Component, Inject } from '@angular/core';
+import { Component, DestroyRef, Inject } from '@angular/core';
 import { RoomServiceService } from '../../services/room-service.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-create-room-page',
@@ -7,9 +8,12 @@ import { RoomServiceService } from '../../services/room-service.service';
   styleUrl: './create-room-page.component.scss'
 })
 export class CreateRoomPageComponent {
-  constructor(@Inject(RoomServiceService) private readonly roomService: RoomServiceService) {}
+  constructor(
+    @Inject(RoomServiceService) private readonly roomService: RoomServiceService,
+    @Inject(DestroyRef) private readonly destroyRef: DestroyRef,
+  ) {}
 
   onCreateRoom() {
-    this.roomService.createRoom().subscribe();
+    this.roomService.createRoom().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 }
